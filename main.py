@@ -9,7 +9,7 @@ def what(message, chat_id, message_id):
     bot.send_chat_action(chat_id, "typing")
     for chunk in client.send_message("capybara", message, with_chat_break=False):
         response += chunk["text_new"]
-        if (bot.edit_message_text(response, chat_id,
+        if (!bot.edit_message_text(response, chat_id,
                                   message_id, parse_mode="Markdown")):
             miss = True
     if (miss):
