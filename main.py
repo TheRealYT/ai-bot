@@ -12,7 +12,8 @@ def what(message, chat_id, message_id):
         if (bot.edit_message_text(response, chat_id,
                                   message_id, parse_mode="Markdown")):
             miss = True
-    bot.send_message(chat_id, response, parse_mode="Markdown")
+    if (miss):
+        bot.send_message(chat_id, response, parse_mode="Markdown")
 
 
 bot = telebot.TeleBot(
