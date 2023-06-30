@@ -5,15 +5,12 @@ import telebot
 def what(message, chat_id, message_id):
     client = poe.Client("7oifB7lowK8lxUTL-TnVpw%3D%3D")
     response = ""
-    miss = False
     bot.send_chat_action(chat_id, "typing")
     for chunk in client.send_message("capybara", message, with_chat_break=False):
         response += chunk["text_new"]
-        if (bot.edit_message_text(response, chat_id,
-                                  message_id, parse_mode=None) == False):
-            miss = True
-    if (miss):
-        bot.send_message(chat_id, response, parse_mode=None)
+        bot.edit_message_text(response, chat_id,
+                              message_id, parse_mode=None)
+    bot.send_message(chat_id, response, parse_mode=None)
 
 
 bot = telebot.TeleBot(
