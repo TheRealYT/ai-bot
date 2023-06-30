@@ -8,8 +8,8 @@ def what(message, chat_id, message_id):
     bot.send_chat_action(chat_id, "typing")
     for chunk in client.send_message("capybara", message, with_chat_break=False):
         response += chunk["text_new"]
-        # bot.edit_message_text(response, chat_id, message_id, parse_mode=None)
-    bot.send_message(chat_id, response, parse_mode=None)
+    bot.edit_message_text(response, chat_id, message_id, parse_mode=None)
+    # bot.send_message(chat_id, response, parse_mode=None)
 
 
 bot = telebot.TeleBot(
