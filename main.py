@@ -2,12 +2,13 @@ import poe
 import telebot
 
 
-def what(message):
+def what(message, chat_id, message_id):
     client = poe.Client("7oifB7lowK8lxUTL-TnVpw%3D%3D")
     response = ""
     for chunk in client.send_message("capybara", message, with_chat_break=True):
         response += chunk["text_new"]
-    return response
+        bot.edit_message_text(response, chat_id,
+                              message_id, parse_mode="Markdown")
 
 
 bot = telebot.TeleBot(
@@ -22,9 +23,7 @@ def send_welcome(message):
 @bot.message_handler(func=lambda m: True)
 def echo_all(message):
     sent = bot.reply_to(message, "Please wait...")
-    bot.edit_message_text("Wait", sent.chat.id,
-                          sent.message_id, parse_mode="Markdown")
-    bot.reply_to(message, what(message.text))
+    what(message.text, sent.chat.id, sent.message_id)
 
 
 bot.infinity_polling()
