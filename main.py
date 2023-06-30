@@ -16,6 +16,7 @@ def send_welcome(message):
 
 @bot.message_handler(func=lambda m: True)
 def echo_all(message):
+    bot.reply_to(message, "Please wait...")
     bot.reply_to(message, what(message.text))
 
 bot.infinity_polling()
