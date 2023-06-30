@@ -22,7 +22,8 @@ def send_welcome(message):
 @bot.message_handler(func=lambda m: True)
 def echo_all(message):
     sent = bot.reply_to(message, "Please wait...")
-    sent.text = "Wait..."
+    bot.edit_message_text("Wait", sent.chat.id,
+                          sent.message_id, parse_mode="Markdown")
     bot.reply_to(message, what(message.text))
 
 
