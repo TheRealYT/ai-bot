@@ -10,14 +10,14 @@ def what(message, chat_id, message_id):
     for chunk in client.send_message("capybara", message, with_chat_break=False):
         response += chunk["text_new"]
         if (bot.edit_message_text(response, chat_id,
-                                  message_id, parse_mode="Markdown") == False):
+                                  message_id, parse_mode=None) == False):
             miss = True
     if (miss):
-        bot.send_message(chat_id, response, parse_mode="Markdown")
+        bot.send_message(chat_id, response, parse_mode=None)
 
 
 bot = telebot.TeleBot(
-    "6313102560:AAHcAM7TRGVX2aNmpfjLaeWWOMHSfGm9E6s", parse_mode="Markdown")
+    "6313102560:AAHcAM7TRGVX2aNmpfjLaeWWOMHSfGm9E6s", parse_mode=None)
 
 
 @bot.message_handler(commands=['start', 'help'])
