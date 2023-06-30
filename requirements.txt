@@ -1,1 +1,2 @@
 poe-api==0.4.7
+pyTelegramBotAPI==4.12.0
