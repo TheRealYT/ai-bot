@@ -1,4 +1,4 @@
-import asyncio
+# import asyncio
 import poe
 import telebot
 
@@ -10,21 +10,18 @@ def send_welcome(message):
 
 @bot.message_handler(func=lambda m: True)
 def echo_all(message):
-    # bot.reply_to(message, message.text)
-    asyncio.run(respond())
+    bot.reply_to(message, what(message.text))
+    # asyncio.run(respond)
 
 bot.infinity_polling()
 
-async def respond(msg):
-    await what()
-    bot.reply_to(msg, msg.text)
+# async def respond(msg):
+#     await what()
+#     bot.reply_to(msg, msg.text)
 
-async def what():
+async def what(message):
     client = poe.Client("7oifB7lowK8lxUTL-TnVpw%3D%3D")
-    message = "What is your name?"
-
     response = ""
-
     for chunk in await client.send_message("capybara", message, with_chat_break=True):
         response += chunk["text_new"]
     return response
