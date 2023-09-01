@@ -9,10 +9,16 @@ function createNewSessionGUID() {
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 }
 
-function Bot(email, { bitoUserWsId, otpObj: { sixDigitAuthCode, newUser, userId }, bitoaiToken, uIdForXClient = getRandomToken(), currentSessionID = createNewSessionGUID() }) {
+function Bot(email, { bitoUserWsId = '', otpObj: { sixDigitAuthCode = '', newUser = '', userId = '' }, bitoaiToken = '', uIdForXClient = getRandomToken(), currentSessionID = createNewSessionGUID() } = { otpObj: {} }) {
     const abortController = new AbortController();
     const abortSignal = abortController.signal;
     const relString = "<<B1t0De1im@t0r>>";
+
+    const navigator = {
+        platform: 'Win32',
+        product: 'Gecko',
+        productSub: '20030107'
+    }
 
     const bitoAIUrl = 'https://bitoai.bito.ai/';
     const bitoUTUrl = 'https://ut.bito.ai/';
@@ -218,7 +224,6 @@ function Bot(email, { bitoUserWsId, otpObj: { sixDigitAuthCode, newUser, userId 
     let wgName
     let userWorkSpace
     let bitoaiUserEmail
-    let bitoUserWsId
 
     async function joinWSClick(index, WSDetails, email, origin, userId, sixDigitAuthCode) {
         // console.log('workspace ', WSDetails[index]);
@@ -422,6 +427,8 @@ function Bot(email, { bitoUserWsId, otpObj: { sixDigitAuthCode, newUser, userId 
     }
 
     return {
-        sendOTP, validateOTP, getAnswer
+        sendOTP, validateOTP, getAnswer, getUserData: () => ({ bitoUserWsId, otpObj: { sixDigitAuthCode, newUser, userId }, bitoaiToken, uIdForXClient, currentSessionID })
     }
 }
+
+module.exports = Bot
