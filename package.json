@@ -2,16 +2,5 @@
   "name": "ai-bot",
   "version": "1.0.0",
   "private": true,
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "UNLICENSED",
-  "dependencies": {
-    "uuid": "^9.0.0"
-  }
+  "license": "UNLICENSED"
 }
