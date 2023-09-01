@@ -126,7 +126,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         var myHeaders = new Headers();
         myHeaders.append("Authorization", sixDigitAuthCode);
         myHeaders.append("Content-Type", "application/json");
-        myHeaders.append("X-ClientInfo", `${window.navigator.platform + ' ' + window.navigator.product + ' ' + window.navigator.productSub}#Chrome#3.3#${uIdForXClient}#Chrome`);
+        myHeaders.append("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#3.3#${uIdForXClient}#Chrome`);
 
         var requestOptions = {
             method: 'GET',
@@ -169,7 +169,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         var myHeaders = new Headers();
         myHeaders.append("Authorization", sixDigitAuthCode);
         myHeaders.append("Content-Type", "application/json");
-        myHeaders.append("X-ClientInfo", `${window.navigator.platform + ' ' + window.navigator.product + ' ' + window.navigator.productSub}#Chrome#3.3#${uIdForXClient}#Chrome`);
+        myHeaders.append("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#3.3#${uIdForXClient}#Chrome`);
 
         var requestOptions = {
             method: 'GET',
@@ -189,7 +189,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             var myHeaders = new Headers();
             myHeaders.append("Authorization", sixDigitAuthCode);
             myHeaders.append("Content-Type", "application/json");
-            myHeaders.append("X-ClientInfo", `${window.navigator.platform + ' ' + window.navigator.product + ' ' + window.navigator.productSub}#Chrome#${environment.currentVersionChrome}#${uIdForXClient}#${environment.parentIDEName}`);
+            myHeaders.append("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#${environment.currentVersionChrome}#${uIdForXClient}#${environment.parentIDEName}`);
 
             var body = {
                 "name": "Test",
@@ -353,75 +353,78 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             return;
         }
 
-        fetch(environment.chat, requestOptions)
-            .then(response => {
-                if (!response.ok) {
-                    response.json().then(error_test => {
-                        error_resp = error_test;
-                        if (error_resp_status.includes(error_resp.status)) {
-                            if (error_resp.response == 'Unauthorized Access')
-                                console.error("403 error");
-                            console.error(generateCopyId, error_resp.response);
-                            console.error(generateCopyId);
-                        }
-                    })
-                }
-
-
-                var reader = response.body.getReader();
-                var decoder = new TextDecoder();
-
-                return new ReadableStream({
-                    start(controller) {
-                        function push() {
-                            reader.read().then(({ done, value }) => {
-                                if (done) {
-                                    controller.close();
-                                    ctxToPassNew.push(tempContext_);
-                                    addToContext(chatMsg.trim(), answerContext_)
-                                    return;
-                                }
-                                var valuedata = decoder.decode(value);
-                                answerContext_ = '';
-                                if (valuedata.startsWith('data:') || true) {
-                                    chunkReciedMain.push(valuedata);
-                                    var chunkData = chunkReciedMain.join('');
-                                    var chunkArray = chunkData.replaceAll(/( *)data:( *)/gm, relString).split(relString).filter(r => r);
-                                    var dataReceivedTillNow = "";
-                                    chunkArray.forEach(chunkVal_ => {
-                                        try {
-                                            var jsonData = JSON.parse(chunkVal_);
-                                            if (jsonData['choices'] !== undefined && jsonData['choices'].length > 0) {
-                                                var Text_ = jsonData.choices[0].text;
-                                                dataReceivedTillNow += Text_;
-                                                tempContext_ += Text_;
-                                                answerContext_ += Text_;
-                                            }
-
-                                        } catch (err) {
-                                            if (chunkVal_.trim() == "[DONE]") {
-                                            }
-                                            else {
-                                                console.error("Error Occured!!!!", err, "Value Data =>", chunkVal_, "<=");
-                                            }
-                                        }
-                                    });
-                                    // console.log(generateCopyId, dataReceivedTillNow);
-                                }
-                                push();
-                            });
-                        }
-                        push();
+        return new Promise((resolve, reject) => {
+            fetch(environment.chat, requestOptions)
+                .then(response => {
+                    if (!response.ok) {
+                        response.json().then(error_test => {
+                            error_resp = error_test;
+                            if (error_resp_status.includes(error_resp.status)) {
+                                if (error_resp.response == 'Unauthorized Access')
+                                    console.error("403 error");
+                                console.error(generateCopyId, error_resp.response);
+                                console.error(generateCopyId);
+                                reject(response)
+                            }
+                        })
                     }
+
+                    var reader = response.body.getReader();
+                    var decoder = new TextDecoder();
+
+                    new ReadableStream({
+                        start(controller) {
+                            function push() {
+                                reader.read().then(({ done, value }) => {
+                                    if (done) {
+                                        controller.close();
+                                        ctxToPassNew.push(tempContext_);
+                                        addToContext(chatMsg.trim(), answerContext_)
+                                        resolve(answerContext_)
+                                        return;
+                                    }
+                                    var valuedata = decoder.decode(value);
+                                    answerContext_ = '';
+                                    if (valuedata.startsWith('data:') || true) {
+                                        chunkReciedMain.push(valuedata);
+                                        var chunkData = chunkReciedMain.join('');
+                                        var chunkArray = chunkData.replaceAll(/( *)data:( *)/gm, relString).split(relString).filter(r => r);
+                                        var dataReceivedTillNow = "";
+                                        chunkArray.forEach(chunkVal_ => {
+                                            try {
+                                                var jsonData = JSON.parse(chunkVal_);
+                                                if (jsonData['choices'] !== undefined && jsonData['choices'].length > 0) {
+                                                    var Text_ = jsonData.choices[0].text;
+                                                    dataReceivedTillNow += Text_;
+                                                    tempContext_ += Text_;
+                                                    answerContext_ += Text_;
+                                                }
+
+                                            } catch (err) {
+                                                if (chunkVal_.trim() == "[DONE]") {
+                                                }
+                                                else {
+                                                    console.error("Error Occured!!!!", err, "Value Data =>", chunkVal_, "<=");
+                                                }
+                                            }
+                                        });
+                                        // console.log(generateCopyId, dataReceivedTillNow);
+                                    }
+                                    push();
+                                });
+                            }
+                            push();
+                        }
+                    });
+                }).catch(error => {
+                    console.error(error.name, error.message)
+                    if (error.message == 'Failed to fetch' || error.message == 'NetworkError when attempting to fetch resource.' || error.message == 'network error') {
+                        console.error(generateCopyId, 'Unable to connect to the internet. Please check your network connection and try again.');
+                        return;
+                    }
+                    console.error(generateCopyId, "Whoops, looks like your request is timing out. Our service has been growing quickly, and we are having some growing pains. We are working to add more capacity. Sorry for any inconvenience. Please try again a little later.")
                 });
-            }).catch(error => {
-                console.error(error.name, error.message)
-                if (error.message == 'Failed to fetch' || error.message == 'NetworkError when attempting to fetch resource.' || error.message == 'network error') {
-                    console.error(generateCopyId, 'Unable to connect to the internet. Please check your network connection and try again.');
-                    return;
-                }
-                console.error(generateCopyId, "Whoops, looks like your request is timing out. Our service has been growing quickly, and we are having some growing pains. We are working to add more capacity. Sorry for any inconvenience. Please try again a little later.")
-            });
+        })
     }
 
     return {
