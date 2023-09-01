@@ -20,4 +20,4 @@ createServer((req, res) => {
         console.error(reason)
         res.write("Hi").end()
     })
-})
+}).listen(3000)
