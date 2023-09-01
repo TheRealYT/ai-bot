@@ -1,4 +1,5 @@
 const Bot = require('./api')
+const {createServer} = require("http")
 
 let b = new Bot('tefixuca@clout.wiki', {
     bitoUserWsId: 526669,
@@ -12,4 +13,11 @@ let b = new Bot('tefixuca@clout.wiki', {
     currentSessionID: "fcc4c0fa-8e14-4132-90a1-ef2613e2315f"
 })
 
-b.getAnswer("Hi").then(ans => console.log(ans))
+createServer((req, res) => {
+    b.getAnswer("Hi").then(ans => {
+        res.write(ans).end()
+    }).catch(reason => {
+        console.error(reason)
+        res.write("Hi").end()
+    })
+})
