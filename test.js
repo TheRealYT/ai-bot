@@ -1,4 +1,4 @@
-const Bot = require('./api')
+const Bot = require('./api/hello')
 
 let b = new Bot('tefixuca@clout.wiki', {
     bitoUserWsId: 526669,
