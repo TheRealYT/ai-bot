@@ -298,13 +298,14 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         })
     }
 
-    const context = [{
-        question: "Hello, who are you?",
-        answer: "I am an AI created by Bito. How can I help you today?"
-    }]
+    const context = []
 
     function getQuestionContext() {
         return context
+    }
+
+    function clearContext() {
+        context.splice(0, context.length)
     }
 
     function addToContext(question, answer) {
@@ -312,7 +313,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         context.push({ question, answer })
     }
 
-    function getAnswer(chatMsg) {
+    function getAnswer(chatMsg, streamCallback) {
         const myHeaders = new Headers();
         const ctxToPassNew = Array();
 
@@ -399,10 +400,10 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                                         resolve(answerContext_)
                                         return;
                                     }
-                                    const valuedata = decoder.decode(value);
+                                    const valueData = decoder.decode(value);
                                     answerContext_ = '';
-                                    if (valuedata.startsWith('data:') || true) {
-                                        chunkReceivedMain.push(valuedata);
+                                    if (valueData.startsWith('data:') || true) {
+                                        chunkReceivedMain.push(valueData);
                                         const chunkData = chunkReceivedMain.join('');
                                         const chunkArray = chunkData.replaceAll(/( *)data:( *)/gm, relString).split(relString).filter(r => r);
                                         let dataReceivedTillNow = "";
@@ -423,6 +424,8 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                                                 }
                                             }
                                         });
+                                        if (typeof streamCallback == "function")
+                                            streamCallback(dataReceivedTillNow)
                                         // console.log(generateCopyId, dataReceivedTillNow);
                                     }
                                     push();
@@ -438,7 +441,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
     }
 
     return {
-        sendOTP, validateOTP, getAnswer, addToContext, getQuestionContext, getUserData: () => ({ bitoUserWsId, otpObj: { sixDigitAuthCode: otpObj.sixDigitAuthCode, newUser: otpObj.newUser, userId: otpObj.userId }, bitoaiToken, uIdForXClient, currentSessionID })
+        sendOTP, validateOTP, getAnswer, clearContext, addToContext, getQuestionContext, getUserData: () => ({ bitoUserWsId, otpObj: { sixDigitAuthCode: otpObj.sixDigitAuthCode, newUser: otpObj.newUser, userId: otpObj.userId }, bitoaiToken, uIdForXClient, currentSessionID })
     }
 }
 

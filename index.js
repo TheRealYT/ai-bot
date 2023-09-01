@@ -11,4 +11,8 @@ let b = new Bot('tefixuca@clout.wiki', {
     currentSessionID: "fcc4c0fa-8e14-4132-90a1-ef2613e2315f"
 })
 
-b.getAnswer("Hi").then(a => console.log(a))
+console.time("Chat")
+b.getAnswer("Hi").then(ans => {
+    console.timeEnd("Chat")
+    console.log(ans)
+})
