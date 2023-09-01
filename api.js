@@ -9,7 +9,7 @@ function createNewSessionGUID() {
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 }
 
-function Bot(email, { bitoUserWsId = '', otpObj: { sixDigitAuthCode = '', newUser = '', userId = '' }, bitoaiToken = '', uIdForXClient = getRandomToken(), currentSessionID = createNewSessionGUID() } = { otpObj: {} }) {
+function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUser: '', userId: '' }, bitoaiToken = '', uIdForXClient = getRandomToken(), currentSessionID = createNewSessionGUID() } = { otpObj: {} }) {
     const abortController = new AbortController();
     const abortSignal = abortController.signal;
     const relString = "<<B1t0De1im@t0r>>";
@@ -70,8 +70,6 @@ function Bot(email, { bitoUserWsId = '', otpObj: { sixDigitAuthCode = '', newUse
             .then(response => response.text())
             .then(result => {
                 response = JSON.parse(result);
-
-                uIdToPass = response.userId;
 
                 otpObj = {
                     email: email,
@@ -290,7 +288,7 @@ function Bot(email, { bitoUserWsId = '', otpObj: { sixDigitAuthCode = '', newUse
 
     function addToContext(question, answer) {
         if (context.length > 10) context.shift();
-        context.push(question, answer)
+        context.push({ question, answer })
 
         console.log(answer)
     }
@@ -305,14 +303,14 @@ function Bot(email, { bitoUserWsId = '', otpObj: { sixDigitAuthCode = '', newUse
         // Make the API call using the fetch() function
         myHeaders.set("Authorization", bitoaiToken);
         myHeaders.set("Content-Type", "application/json");
-        myHeaders.set("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#${environment.currentVersionChrome}#${uIdToPass}#${environment.parentIDEName}`);
+        myHeaders.set("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#${environment.currentVersionChrome}#${otpObj.userId}#${environment.parentIDEName}`);
 
         var body = {};
 
         if (email) {
             body = {
                 "prompt": chatMsg.trim(),
-                "uId": "" + uIdToPass,
+                "uId": "" + otpObj.userId,
                 "ideName": "Chrome",
                 "bitoUserId": otpObj.userId,
                 "email": email,
@@ -325,7 +323,7 @@ function Bot(email, { bitoUserWsId = '', otpObj: { sixDigitAuthCode = '', newUse
         } else {
             body = {
                 "prompt": chatMsg.trim(),
-                "uId": "" + uIdToPass,
+                "uId": "" + otpCode.userId,
                 "ideName": "Chrome",
                 "requestId": QuesGUID,
                 "stream": true,
@@ -427,7 +425,7 @@ function Bot(email, { bitoUserWsId = '', otpObj: { sixDigitAuthCode = '', newUse
     }
 
     return {
-        sendOTP, validateOTP, getAnswer, getUserData: () => ({ bitoUserWsId, otpObj: { sixDigitAuthCode, newUser, userId }, bitoaiToken, uIdForXClient, currentSessionID })
+        sendOTP, validateOTP, getAnswer, getUserData: () => ({ bitoUserWsId, otpObj: { sixDigitAuthCode: otpObj.sixDigitAuthCode, newUser: otpObj.newUser, userId: otpObj.userId }, bitoaiToken, uIdForXClient, currentSessionID })
     }
 }
 
