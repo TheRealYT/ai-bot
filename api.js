@@ -9,7 +9,7 @@ function createNewSessionGUID() {
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 }
 
-function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUser: '', userId: '' }, bitoaiToken = '', uIdForXClient = getRandomToken(), currentSessionID = createNewSessionGUID() } = { otpObj: {} }) {
+export default function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUser: '', userId: '' }, bitoaiToken = '', uIdForXClient = getRandomToken(), currentSessionID = createNewSessionGUID() } = { otpObj: {} }) {
     const abortController = new AbortController();
     const abortSignal = abortController.signal;
     const relString = "<<B1t0De1im@t0r>>";
@@ -222,6 +222,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             return new Promise((resolve, reject) => {
                 fetch(environment.createWorkspace.replace('{userId}', userId), requestOptions).then(response => response.text())
                     .then(result => {
+                        let response;
                         response = JSON.parse(result);
                         // console.log("Workspace Created", response, response.id, response.name)
                         joinWSClick('', response, email, "Join", userId, sixDigitAuthCode).then(() => resolve(true)).catch(reason => reject(reason))
@@ -318,7 +319,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         const ctxToPassNew = Array();
 
         //Creating GUID/UUID in Javascript using ES6 Crypto API
-        const QuesGUID = ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ require("node:crypto").randomBytes(1)[0] & 15 >> c / 4).toString(16))
+        const QuesGUID = ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16))
 
         // Make the API call using the fetch() function
         myHeaders.set("Authorization", bitoaiToken);
@@ -444,5 +445,3 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         sendOTP, validateOTP, getAnswer, clearContext, addToContext, getQuestionContext, getUserData: () => ({ bitoUserWsId, otpObj: { sixDigitAuthCode: otpObj.sixDigitAuthCode, newUser: otpObj.newUser, userId: otpObj.userId }, bitoaiToken, uIdForXClient, currentSessionID })
     }
 }
-
-module.exports = Bot
