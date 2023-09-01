@@ -2,5 +2,10 @@
   "name": "ai-bot",
   "version": "1.0.0",
   "private": true,
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^17.0.42",
+    "@vercel/node": "^2.9.6",
+    "typescript": "^4.7.3"
+  }
 }
