@@ -1,4 +1,6 @@
+const {createServer} = require("http");
 const Bot = require('./api')
+
 let b = new Bot('tefixuca@clout.wiki', {
     bitoUserWsId: 526669,
     otpObj: {
@@ -11,8 +13,13 @@ let b = new Bot('tefixuca@clout.wiki', {
     currentSessionID: "fcc4c0fa-8e14-4132-90a1-ef2613e2315f"
 })
 
-console.time("Chat")
-b.getAnswer("Hi").then(ans => {
-    console.timeEnd("Chat")
-    console.log(ans)
-})
+
+createServer((req, res) => {
+    b.getAnswer("Hi").then(ans => {
+        res.write(ans)
+        res.end()
+    }).catch(reason => console.error(reason)).catch(() => {
+        res.write("Hello")
+        res.end()
+    })
+}).listen(3000)
