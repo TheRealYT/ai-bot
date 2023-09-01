@@ -10,5 +10,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "uuid": "^9.0.0"
+  }
 }
