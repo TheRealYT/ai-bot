@@ -48,18 +48,18 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
     };
 
     function sendOTP() {
-        var myHeaders = new Headers();
+        const myHeaders = new Headers();
         // myHeaders.append("Authorization", 'Bearer ' + bitoaiToken );
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#${environment.currentVersionChrome}#${uIdForXClient}#${environment.parentIDEName}`);
 
-        var body = {
+        const body = {
             "email": email,
             "isAppToken": true,
             "isNewUser": false
-        }
+        };
 
-        var requestOptions = {
+        const requestOptions = {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(body),
@@ -69,7 +69,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         fetch(environment.tokenAPI, requestOptions)
             .then(response => response.text())
             .then(result => {
-                response = JSON.parse(result);
+                let response = JSON.parse(result);
 
                 otpObj = {
                     email: email,
@@ -87,15 +87,15 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
     }
 
     function validateOTP(otpCode) {
-        var sixDigitAuthCode = otpObj.sixDigitAuthCode
-        var myHeaders = new Headers();
+        const sixDigitAuthCode = otpObj.sixDigitAuthCode;
+        const myHeaders = new Headers();
         myHeaders.append("Authorization", sixDigitAuthCode);
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#${environment.currentVersionChrome}#${uIdForXClient}#${environment.parentIDEName}`);
 
-        var body = {}
+        const body = {};
 
-        var requestOptions = {
+        const requestOptions = {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(body),
@@ -105,6 +105,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             .then(response => response.text())
             .then(result => {
 
+                let response;
                 if (result !== "") {
                     response = JSON.parse(result);
                     let companyDomain = email.split('@')[1];
@@ -123,12 +124,12 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
     }
 
     function showWSList(email, sixDigitAuthCode, newUser, userId, companyDomain) {
-        var myHeaders = new Headers();
+        const myHeaders = new Headers();
         myHeaders.append("Authorization", sixDigitAuthCode);
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#3.3#${uIdForXClient}#Chrome`);
 
-        var requestOptions = {
+        const requestOptions = {
             method: 'GET',
             headers: myHeaders,
         };
@@ -166,19 +167,18 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         let isDomainAllowed
         let isDomainCheck = environment.isDomainAllowed.replace("{email}", email)
 
-        var myHeaders = new Headers();
+        const myHeaders = new Headers();
         myHeaders.append("Authorization", sixDigitAuthCode);
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#3.3#${uIdForXClient}#Chrome`);
 
-        var requestOptions = {
+        const requestOptions = {
             method: 'GET',
             headers: myHeaders
         }
         await fetch(isDomainCheck, requestOptions).then(response => response.text())
             .then(result => {
-                response = JSON.parse(result);
-                isDomainAllowed = response;
+                isDomainAllowed = JSON.parse(result);
                 // console.log("isDomainAllowed", response)
             })
             .catch(error => {
@@ -186,17 +186,17 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             });
 
         return () => {
-            var myHeaders = new Headers();
+            const myHeaders = new Headers();
             myHeaders.append("Authorization", sixDigitAuthCode);
             myHeaders.append("Content-Type", "application/json");
             myHeaders.append("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#${environment.currentVersionChrome}#${uIdForXClient}#${environment.parentIDEName}`);
 
-            var body = {
+            const body = {
                 "name": "Test",
                 "companyDomain": isDomainAllowed,
             }
 
-            var requestOptions = {
+            const requestOptions = {
                 method: 'POST',
                 headers: myHeaders,
                 body: JSON.stringify(body)
@@ -225,12 +225,12 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
 
     async function joinWSClick(index, WSDetails, email, origin, userId, sixDigitAuthCode) {
         // console.log('workspace ', WSDetails[index]);
-        var myHeaders = new Headers();
+        const myHeaders = new Headers();
         myHeaders.append("Authorization", sixDigitAuthCode);
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#${environment.currentVersionChrome}#${uIdForXClient}#${environment.parentIDEName}`);
 
-        var requestOptions = {
+        const requestOptions = {
             method: 'GET',
             headers: myHeaders,
             redirect: 'follow'
@@ -256,10 +256,10 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                     "VERIFIED",
                 ];
 
-                var userWG = res.workGroups;
-                var strData = JSON.stringify(userWG);
-                var selectedWGUserList = JSON.stringify(userWG[0].users.filter(user => statuses.includes(user.status)));
-                var userSelectedWS = res.workSpaceUser;
+                const userWG = res.workGroups;
+                const strData = JSON.stringify(userWG);
+                const selectedWGUserList = JSON.stringify(userWG[0].users.filter(user => statuses.includes(user.status)));
+                const userSelectedWS = res.workSpaceUser;
                 // console.log("selectedWS = ", JSON.stringify(userSelectedWS));
 
 
@@ -294,18 +294,18 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
     }
 
     function getAnswer(chatMsg) {
-        var myHeaders = new Headers();
-        var ctxToPassNew = Array();
+        const myHeaders = new Headers();
+        const ctxToPassNew = Array();
 
-        //Creating GUID/UUID in Javascript using ES6 Crypto API 
-        var QuesGUID = ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16))
+        //Creating GUID/UUID in Javascript using ES6 Crypto API
+        const QuesGUID = ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ require("node:crypto").randomBytes(1)[0] & 15 >> c / 4).toString(16))
 
         // Make the API call using the fetch() function
         myHeaders.set("Authorization", bitoaiToken);
         myHeaders.set("Content-Type", "application/json");
         myHeaders.set("X-ClientInfo", `${navigator.platform + ' ' + navigator.product + ' ' + navigator.productSub}#Chrome#${environment.currentVersionChrome}#${otpObj.userId}#${environment.parentIDEName}`);
 
-        var body = {};
+        let body;
 
         if (email) {
             body = {
@@ -323,7 +323,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         } else {
             body = {
                 "prompt": chatMsg.trim(),
-                "uId": "" + otpCode.userId,
+                "uId": "" + otpObj.userId,
                 "ideName": "Chrome",
                 "requestId": QuesGUID,
                 "stream": true,
@@ -332,7 +332,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             }
         }
 
-        var requestOptions = {
+        const requestOptions = {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(body),
@@ -340,16 +340,14 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             signal: abortSignal
 
         };
-        var tempContext_ = '';
-        var answerContext_ = '';
-        var error_resp;
-        var error_resp_status = [1, 2, 3]
-        var generateCopyId = Math.floor(Math.random() * 1000);
+        let tempContext_ = '';
+        let answerContext_ = '';
+        let error_resp;
+        const error_resp_status = [1, 2, 3]
+        const generateCopyId = Math.floor(Math.random() * 1000);
+        const chunkReceivedMain = Array();
 
-        targetAnswerDivIdForErrorMessage = generateCopyId;
-        var chunkReciedMain = Array();
-
-        if (bitoaiToken == 'QklUT0FJLWJrMEJENDM4MDUtNDZFNi00NzMzLUEwQzYtMzJGMDAyMTY0NzMxOjI1MDgtMzg=') {
+        if (bitoaiToken === 'QklUT0FJLWJrMEJENDM4MDUtNDZFNi00NzMzLUEwQzYtMzJGMDAyMTY0NzMxOjI1MDgtMzg=') {
             return;
         }
 
@@ -360,7 +358,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                         response.json().then(error_test => {
                             error_resp = error_test;
                             if (error_resp_status.includes(error_resp.status)) {
-                                if (error_resp.response == 'Unauthorized Access')
+                                if (error_resp.response === 'Unauthorized Access')
                                     console.error("403 error");
                                 console.error(generateCopyId, error_resp.response);
                                 console.error(generateCopyId);
@@ -369,8 +367,8 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                         })
                     }
 
-                    var reader = response.body.getReader();
-                    var decoder = new TextDecoder();
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
 
                     new ReadableStream({
                         start(controller) {
@@ -383,28 +381,28 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                                         resolve(answerContext_)
                                         return;
                                     }
-                                    var valuedata = decoder.decode(value);
+                                    const valuedata = decoder.decode(value);
                                     answerContext_ = '';
                                     if (valuedata.startsWith('data:') || true) {
-                                        chunkReciedMain.push(valuedata);
-                                        var chunkData = chunkReciedMain.join('');
-                                        var chunkArray = chunkData.replaceAll(/( *)data:( *)/gm, relString).split(relString).filter(r => r);
-                                        var dataReceivedTillNow = "";
+                                        chunkReceivedMain.push(valuedata);
+                                        const chunkData = chunkReceivedMain.join('');
+                                        const chunkArray = chunkData.replaceAll(/( *)data:( *)/gm, relString).split(relString).filter(r => r);
+                                        let dataReceivedTillNow = "";
                                         chunkArray.forEach(chunkVal_ => {
                                             try {
-                                                var jsonData = JSON.parse(chunkVal_);
+                                                const jsonData = JSON.parse(chunkVal_);
                                                 if (jsonData['choices'] !== undefined && jsonData['choices'].length > 0) {
-                                                    var Text_ = jsonData.choices[0].text;
+                                                    const Text_ = jsonData.choices[0].text;
                                                     dataReceivedTillNow += Text_;
                                                     tempContext_ += Text_;
                                                     answerContext_ += Text_;
                                                 }
 
                                             } catch (err) {
-                                                if (chunkVal_.trim() == "[DONE]") {
+                                                if (chunkVal_.trim() === "[DONE]") {
                                                 }
                                                 else {
-                                                    console.error("Error Occured!!!!", err, "Value Data =>", chunkVal_, "<=");
+                                                    console.error("Error Occurred!!!!", err, "Value Data =>", chunkVal_, "<=");
                                                 }
                                             }
                                         });
@@ -418,7 +416,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                     });
                 }).catch(error => {
                     console.error(error.name, error.message)
-                    if (error.message == 'Failed to fetch' || error.message == 'NetworkError when attempting to fetch resource.' || error.message == 'network error') {
+                    if (error.message === 'Failed to fetch' || error.message === 'NetworkError when attempting to fetch resource.' || error.message === 'network error') {
                         console.error(generateCopyId, 'Unable to connect to the internet. Please check your network connection and try again.');
                         return;
                     }
