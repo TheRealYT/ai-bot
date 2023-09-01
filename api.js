@@ -1,20 +1,25 @@
-function Bot(email) {
-    var abortController = new AbortController();
-    var abortSignal = abortController.signal;
-    var otpObj
-    var bitoaiToken
-    var relString = "<<B1t0De1im@t0r>>";
+function getRandomToken() {
+    const s4 = () => Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    return `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+}
 
-    let uIdForXClient = getRandomToken()
-    var currentSessionID = createNewSessionGUID()
+function createNewSessionGUID() {
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+}
 
+function Bot(email, { bitoUserWsId, otpObj: { sixDigitAuthCode, newUser, userId }, bitoaiToken, uIdForXClient = getRandomToken(), currentSessionID = createNewSessionGUID() }) {
+    const abortController = new AbortController();
+    const abortSignal = abortController.signal;
+    const relString = "<<B1t0De1im@t0r>>";
 
-    var bitoAIUrl = 'https://bitoai.bito.ai/';
-    var bitoUTUrl = 'https://ut.bito.ai/';
-    var managementAPI = 'https://mgmtapi.bito.ai/';
-    var bitoAlpha = 'https://alpha.bito.ai/';
+    const bitoAIUrl = 'https://bitoai.bito.ai/';
+    const bitoUTUrl = 'https://ut.bito.ai/';
+    const managementAPI = 'https://mgmtapi.bito.ai/';
+    const bitoAlpha = 'https://alpha.bito.ai/';
 
-    var environment = {
+    const environment = {
         currentVersionChrome: "3.3",
         explainCode: bitoAIUrl + 'ai/v1/explaincode/',
         chat: bitoAIUrl + 'ai/v2/chat/',
@@ -36,19 +41,7 @@ function Bot(email) {
         parentIDEName: "Chrome",
     };
 
-    function getRandomToken() {
-        const s4 = () => Math.floor((1 + Math.random()) * 0x10000)
-            .toString(16)
-            .substring(1);
-        return `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
-    }
-
-    function createNewSessionGUID() {
-        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
-    }
-
     function sendOTP() {
-
         var myHeaders = new Headers();
         // myHeaders.append("Authorization", 'Bearer ' + bitoaiToken );
         myHeaders.append("Content-Type", "application/json");
@@ -90,7 +83,6 @@ function Bot(email) {
     }
 
     function validateOTP(otpCode) {
-        var email = otpObj.email
         var sixDigitAuthCode = otpObj.sixDigitAuthCode
         var myHeaders = new Headers();
         myHeaders.append("Authorization", sixDigitAuthCode);
@@ -218,19 +210,18 @@ function Bot(email) {
         }
     }
 
-    var wsId
-    var wsName
-    var usersWorkGroup
-    var wgUserList
-    var wgId
-    var wgName
-    var userWorkSpace
-    var bitoaiUserEmail
-    var bitoUserWsId
+    let wsId
+    let wsName
+    let usersWorkGroup
+    let wgUserList
+    let wgId
+    let wgName
+    let userWorkSpace
+    let bitoaiUserEmail
+    let bitoUserWsId
 
     async function joinWSClick(index, WSDetails, email, origin, userId, sixDigitAuthCode) {
         // console.log('workspace ', WSDetails[index]);
-
         var myHeaders = new Headers();
         myHeaders.append("Authorization", sixDigitAuthCode);
         myHeaders.append("Content-Type", "application/json");
@@ -295,14 +286,14 @@ function Bot(email) {
     function addToContext(question, answer) {
         if (context.length > 10) context.shift();
         context.push(question, answer)
+
+        console.log(answer)
     }
 
-    var myHeaders = new Headers();
-    var ctxToPassNew = Array();
-
-    var isChromeAnswerStreaming = false
-
     function getAnswer(chatMsg) {
+        var myHeaders = new Headers();
+        var ctxToPassNew = Array();
+
         //Creating GUID/UUID in Javascript using ES6 Crypto API 
         var QuesGUID = ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16))
 
@@ -313,13 +304,13 @@ function Bot(email) {
 
         var body = {};
 
-        if (otpObj.email) {
+        if (email) {
             body = {
                 "prompt": chatMsg.trim(),
                 "uId": "" + uIdToPass,
                 "ideName": "Chrome",
                 "bitoUserId": otpObj.userId,
-                "email": otpObj.email,
+                "email": email,
                 "requestId": QuesGUID,
                 "stream": true,
                 "context": getQuestionContext(),
@@ -373,7 +364,6 @@ function Bot(email) {
                     })
                 }
 
-                isChromeAnswerStreaming = true;
 
                 var reader = response.body.getReader();
                 var decoder = new TextDecoder();
@@ -386,8 +376,6 @@ function Bot(email) {
                                     controller.close();
                                     ctxToPassNew.push(tempContext_);
                                     addToContext(chatMsg.trim(), answerContext_)
-                                    // console.log(generateCopyId);
-                                    isChromeAnswerStreaming = false;
                                     return;
                                 }
                                 var valuedata = decoder.decode(value);
@@ -427,11 +415,9 @@ function Bot(email) {
                 console.error(error.name, error.message)
                 if (error.message == 'Failed to fetch' || error.message == 'NetworkError when attempting to fetch resource.' || error.message == 'network error') {
                     console.error(generateCopyId, 'Unable to connect to the internet. Please check your network connection and try again.');
-                    isChromeAnswerStreaming = false;
                     return;
                 }
                 console.error(generateCopyId, "Whoops, looks like your request is timing out. Our service has been growing quickly, and we are having some growing pains. We are working to add more capacity. Sorry for any inconvenience. Please try again a little later.")
-                isChromeAnswerStreaming = false;
             });
     }
 
