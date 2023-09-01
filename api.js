@@ -66,24 +66,27 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             redirect: 'follow'
         };
 
-        fetch(environment.tokenAPI, requestOptions)
-            .then(response => response.text())
-            .then(result => {
-                let response = JSON.parse(result);
+        return new Promise((resolve, reject) => {
+            fetch(environment.tokenAPI, requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    let response = JSON.parse(result);
 
-                otpObj = {
-                    email: email,
-                    sixDigitAuthCode: response.invCode,
-                    newUser: response.newUser,
-                    userId: response.userId
-                };
-                bitoaiToken = response.invCode;
-                // console.log({ 'bitoaiToken': response.invCode, 'bitoaiUserId': response.userId })
-                // console.log({ otpObj: otpObj });
-            })
-            .catch(error => {
-                console.error(error);
-            });
+                    otpObj = {
+                        email: email,
+                        sixDigitAuthCode: response.invCode,
+                        newUser: response.newUser,
+                        userId: response.userId
+                    };
+                    bitoaiToken = response.invCode;
+                    resolve(true)
+                    // console.log({ 'bitoaiToken': response.invCode, 'bitoaiUserId': response.userId })
+                    // console.log({ otpObj: otpObj });
+                })
+                .catch(error => {
+                    reject(error);
+                });
+        })
     }
 
     function validateOTP(otpCode) {
@@ -101,26 +104,29 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             body: JSON.stringify(body),
             redirect: 'follow'
         };
+        return new Promise((resolve, reject) => {
+
         fetch(environment.verifyOTP.replace('{email}', email).replace('{otp}', otpCode), requestOptions)
             .then(response => response.text())
             .then(result => {
-
                 let response;
                 if (result !== "") {
                     response = JSON.parse(result);
                     let companyDomain = email.split('@')[1];
-
                     if (response.apierror) {
-                        console.error("Invalid input, Try again");
+                        reject("Invalid input, Try again");
                     }
-                    showWSList(email, sixDigitAuthCode, response.newUser, response.userId, companyDomain);
+                    showWSList(email, sixDigitAuthCode, response.newUser, response.userId, companyDomain).then(() => {
+                        resolve(true)
+                    }).catch(reason => reject(reason))
                 } else {
-                    console.error('Something went wrong. Reload in 5s');
+                    reject('Something went wrong. Reload in 5s');
                 }
             })
             .catch(error => {
-                console.error(error);
+                reject(error)
             });
+        })
     }
 
     function showWSList(email, sixDigitAuthCode, newUser, userId, companyDomain) {
@@ -133,34 +139,45 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             method: 'GET',
             headers: myHeaders,
         };
-        try {
-            Promise.all([
-                fetch(environment.getUserWorkspaces.replace('{userId}', userId), requestOptions).then(response => response.text()),
-                fetch(environment.getDomainWorkspaces.replace('{companyDomain}', companyDomain), requestOptions).then(response => response.text())
-            ])
-                .then(([userWSResult, domainWSResult]) => {
-                    let userWS = JSON.parse(userWSResult);
-                    let domainWS = JSON.parse(domainWSResult);
-                    // Check invitationStatus and move elements to domainWS
-                    userWS = userWS.filter(ws => {
-                        if (ws.invitationStatus === "INVITATION_SENT" || ws.invitationStatus === "APPROVAL_PENDING") {
-                            domainWS.push(ws);
-                            return false; // Exclude from userWS
+
+        return new Promise((resolve, reject) => {
+            try {
+                Promise.all([
+                    fetch(environment.getUserWorkspaces.replace('{userId}', userId), requestOptions).then(response => response.text()),
+                    fetch(environment.getDomainWorkspaces.replace('{companyDomain}', companyDomain), requestOptions).then(response => response.text())
+                ])
+                    .then(([userWSResult, domainWSResult]) => {
+                        let userWS = JSON.parse(userWSResult);
+                        let domainWS = JSON.parse(domainWSResult);
+                        // Check invitationStatus and move elements to domainWS
+                        userWS = userWS.filter(ws => {
+                            if (ws.invitationStatus === "INVITATION_SENT" || ws.invitationStatus === "APPROVAL_PENDING") {
+                                domainWS.push(ws);
+                                return false; // Exclude from userWS
+                            }
+                            return true; // Include in userWS
+                        });
+                        if (userWS.length > 0 || domainWS.length > 0) {
+                            createWorkspace(email, sixDigitAuthCode, userId).then(f => {
+                                f().then(() => {
+                                    resolve(true)
+                                }).catch(reason => reject(reason))
+                            }).catch(reason => reject(reason));
+                        } else {
+                            createWorkspace(email, sixDigitAuthCode, userId).then(f => {
+                                f().then(() => {
+                                    resolve(true)
+                                }).catch(reason => reject(reason))
+                            }).catch(reason => reject(reason));
                         }
-                        return true; // Include in userWS
+                    })
+                    .catch(error => {
+                        reject(error);
                     });
-                    if (userWS.length > 0 || domainWS.length > 0) {
-                        createWorkspace(email, sixDigitAuthCode, userId).then(f => f());
-                    } else {
-                        createWorkspace(email, sixDigitAuthCode, userId).then(f => f());
-                    }
-                })
-                .catch(error => {
-                    console.log("Error while getting workspaces", error);
-                });
-        } catch (err) {
-            console.log("Error while getting user workspaces", err);
-        }
+            } catch (err) {
+                reject(err);
+            }
+        })
     }
 
     async function createWorkspace(email, sixDigitAuthCode, userId) {
@@ -182,7 +199,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                 // console.log("isDomainAllowed", response)
             })
             .catch(error => {
-                console.log("Domain check failed", error)
+                throw error
             });
 
         return () => {
@@ -202,15 +219,17 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                 body: JSON.stringify(body)
             };
 
-            fetch(environment.createWorkspace.replace('{userId}', userId), requestOptions).then(response => response.text())
-                .then(result => {
-                    response = JSON.parse(result);
-                    // console.log("Workspace Created", response, response.id, response.name)
-                    joinWSClick('', response, email, "Join", userId, sixDigitAuthCode)
-                })
-                .catch(error => {
-                    console.log("Workspace not Created", error)
-                });
+            return new Promise((resolve, reject) => {
+                fetch(environment.createWorkspace.replace('{userId}', userId), requestOptions).then(response => response.text())
+                    .then(result => {
+                        response = JSON.parse(result);
+                        // console.log("Workspace Created", response, response.id, response.name)
+                        joinWSClick('', response, email, "Join", userId, sixDigitAuthCode).then(() => resolve(true)).catch(reason => reject(reason))
+                    })
+                    .catch(error => {
+                        reject(error)
+                    });
+            })
         }
     }
 
@@ -223,7 +242,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
     let userWorkSpace
     let bitoaiUserEmail
 
-    async function joinWSClick(index, WSDetails, email, origin, userId, sixDigitAuthCode) {
+    function joinWSClick(index, WSDetails, email, origin, userId, sixDigitAuthCode) {
         // console.log('workspace ', WSDetails[index]);
         const myHeaders = new Headers();
         myHeaders.append("Authorization", sixDigitAuthCode);
@@ -236,45 +255,47 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
             redirect: 'follow'
         };
 
-        fetch(
-            environment.joinWorkspace
-                .replace('{workspaceId}', (WSDetails[index] || WSDetails).id)
-                .replace('{userId}', userId),
-            requestOptions
-        )
-            .then(response => {
-                return response.json();
-            })
-            .then(res => {
-                // console.log('joined successfully', res);
-                let statuses = [
-                    "APPROVED_BY_OWNER",
-                    "INVITATION_ACCEPTED_VIA_URL",
-                    "OWNER",
-                    "INVITATION_ACCEPTED",
-                    "ENABLED",
-                    "VERIFIED",
-                ];
+        return new Promise((resolve, reject) => {
+            fetch(
+                environment.joinWorkspace
+                    .replace('{workspaceId}', (WSDetails[index] || WSDetails).id)
+                    .replace('{userId}', userId),
+                requestOptions
+            )
+                .then(response => {
+                    return response.json();
+                })
+                .then(res => {
+                    // console.log('joined successfully', res);
+                    let statuses = [
+                        "APPROVED_BY_OWNER",
+                        "INVITATION_ACCEPTED_VIA_URL",
+                        "OWNER",
+                        "INVITATION_ACCEPTED",
+                        "ENABLED",
+                        "VERIFIED",
+                    ];
 
-                const userWG = res.workGroups;
-                const strData = JSON.stringify(userWG);
-                const selectedWGUserList = JSON.stringify(userWG[0].users.filter(user => statuses.includes(user.status)));
-                const userSelectedWS = res.workSpaceUser;
-                // console.log("selectedWS = ", JSON.stringify(userSelectedWS));
+                    const userWG = res.workGroups;
+                    const strData = JSON.stringify(userWG);
+                    const selectedWGUserList = JSON.stringify(userWG[0].users.filter(user => statuses.includes(user.status)));
+                    const userSelectedWS = res.workSpaceUser;
+                    // console.log("selectedWS = ", JSON.stringify(userSelectedWS));
 
-
-                wsId = (WSDetails[index] || WSDetails).id;
-                wsName = (WSDetails[index] || WSDetails).name;
-                usersWorkGroup = strData;
-                wgUserList = selectedWGUserList;
-                wgId = userWG[0].id;
-                wgName = userWG[0].name;
-                userWorkSpace = JSON.stringify(userSelectedWS);
-                bitoaiUserEmail = email;
-                bitoUserWsId = (WSDetails[index] || WSDetails).id;
-            }, (err) => {
-                console.log('error', err);
-            })
+                    wsId = (WSDetails[index] || WSDetails).id;
+                    wsName = (WSDetails[index] || WSDetails).name;
+                    usersWorkGroup = strData;
+                    wgUserList = selectedWGUserList;
+                    wgId = userWG[0].id;
+                    wgName = userWG[0].name;
+                    userWorkSpace = JSON.stringify(userSelectedWS);
+                    bitoaiUserEmail = email;
+                    bitoUserWsId = (WSDetails[index] || WSDetails).id;
+                    resolve(true)
+                }, (err) => {
+                    reject(err);
+                })
+        })
     }
 
     const context = [{
@@ -289,8 +310,6 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
     function addToContext(question, answer) {
         if (context.length > 10) context.shift();
         context.push({ question, answer })
-
-        console.log(answer)
     }
 
     function getAnswer(chatMsg) {
@@ -344,7 +363,7 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
         let answerContext_ = '';
         let error_resp;
         const error_resp_status = [1, 2, 3]
-        const generateCopyId = Math.floor(Math.random() * 1000);
+        Math.floor(Math.random() * 1000);
         const chunkReceivedMain = Array();
 
         if (bitoaiToken === 'QklUT0FJLWJrMEJENDM4MDUtNDZFNi00NzMzLUEwQzYtMzJGMDAyMTY0NzMxOjI1MDgtMzg=') {
@@ -359,12 +378,11 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                             error_resp = error_test;
                             if (error_resp_status.includes(error_resp.status)) {
                                 if (error_resp.response === 'Unauthorized Access')
-                                    console.error("403 error");
-                                console.error(generateCopyId, error_resp.response);
-                                console.error(generateCopyId);
-                                reject(response)
+                                    reject("403 error");
+                                reject(error_resp)
                             }
                         })
+                        return
                     }
 
                     const reader = response.body.getReader();
@@ -400,9 +418,8 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
 
                                             } catch (err) {
                                                 if (chunkVal_.trim() === "[DONE]") {
-                                                }
-                                                else {
-                                                    console.error("Error Occurred!!!!", err, "Value Data =>", chunkVal_, "<=");
+                                                } else {
+                                                    reject(err);
                                                 }
                                             }
                                         });
@@ -415,18 +432,13 @@ function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUse
                         }
                     });
                 }).catch(error => {
-                    console.error(error.name, error.message)
-                    if (error.message === 'Failed to fetch' || error.message === 'NetworkError when attempting to fetch resource.' || error.message === 'network error') {
-                        console.error(generateCopyId, 'Unable to connect to the internet. Please check your network connection and try again.');
-                        return;
-                    }
-                    console.error(generateCopyId, "Whoops, looks like your request is timing out. Our service has been growing quickly, and we are having some growing pains. We are working to add more capacity. Sorry for any inconvenience. Please try again a little later.")
+                    reject(error)
                 });
         })
     }
 
     return {
-        sendOTP, validateOTP, getAnswer, getUserData: () => ({ bitoUserWsId, otpObj: { sixDigitAuthCode: otpObj.sixDigitAuthCode, newUser: otpObj.newUser, userId: otpObj.userId }, bitoaiToken, uIdForXClient, currentSessionID })
+        sendOTP, validateOTP, getAnswer, addToContext, getQuestionContext, getUserData: () => ({ bitoUserWsId, otpObj: { sixDigitAuthCode: otpObj.sixDigitAuthCode, newUser: otpObj.newUser, userId: otpObj.userId }, bitoaiToken, uIdForXClient, currentSessionID })
     }
 }
 
