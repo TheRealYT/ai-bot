@@ -8,6 +8,7 @@ export default class Handler {
     #listeners = {}
     #BOT_TOKEN
     #BOT_URL
+    #close
 
     constructor(BOT_TOKEN, BOT_URL) {
         this.#BOT_TOKEN = BOT_TOKEN
@@ -61,7 +62,15 @@ export default class Handler {
         await this.#req('forwardMessage', {chat_id, from_chat_id, message_id, ...other})
     }
 
-    parse(body) {
+    close() {
+        if (typeof this.#close == "function") {
+            this.#close()
+            this.#close = null
+        }
+    }
+
+    parse(body, closer) {
+        this.#close = closer
         if ("message" in body) {
             const {message} = body
             const commands = {}

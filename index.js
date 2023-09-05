@@ -38,6 +38,7 @@ handler.on('message', async (message, on) => {
             // await Promise.all(
             //     [
             await handler.sendChatAction(message.chat.id, "typing")
+            handler.close()
             await handler.sendMessage(message.from.id, ans)
             // ])
             console.log(bot.getQuestionContext())
@@ -52,7 +53,9 @@ app.use(async (ctx) => {
     if (ctx.request.hasBody) {
         const body = await ctx.request.body().value;
         console.log(body);
-        handler.parse(body)
+        handler.parse(body, () => {
+            ctx.response.body = "";
+        })
     }
     ctx.response.body = "";
 });
