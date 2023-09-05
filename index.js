@@ -38,6 +38,9 @@ handler.on('message', async (message, on) => {
     })
 })
 
+app.use(oakCors()); // Enable CORS for All Routes
+app.use(router.routes());
+app.use(router.allowedMethods());
 app.use(async (ctx) => {
     if (ctx.request.hasBody) {
         const body = await ctx.request.body().value;
@@ -46,9 +49,5 @@ app.use(async (ctx) => {
     }
     ctx.response.body = "";
 });
-
-app.use(oakCors()); // Enable CORS for All Routes
-app.use(router.routes());
-app.use(router.allowedMethods());
 
 await app.listen({port: 80});
