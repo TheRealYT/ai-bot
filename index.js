@@ -1,7 +1,7 @@
 import {Server} from "https://deno.land/std@0.200.0/http/server.ts";
-import Bot from "./api.js";
+import Bot from "./ai_api.js";
 
-const b = Bot('tefixuca@clout.wiki', {
+const bot = Bot('tefixuca@clout.wiki', {
     bitoUserWsId: '526669',
     otpObj: {
         sixDigitAuthCode: "077287672529828347",
@@ -13,20 +13,39 @@ const b = Bot('tefixuca@clout.wiki', {
     currentSessionID: "fcc4c0fa-8e14-4132-90a1-ef2613e2315f"
 })
 
-const handler = async () => {
-    return new Promise((resolve) => {
-        b.getAnswer("Hi").then(ans => {
-            resolve(new Response(String(ans), {status: 200}));
-        }).catch(reason => {
-            console.error(reason)
-            resolve(new Response("Hi", {status: 200}));
-        })
+import {Application, Router} from "https://deno.land/x/oak@v11.1.0/mod.ts";
+import {oakCors} from "https://deno.land/x/cors@v1.2.2/mod.ts";
+
+const handler = new Handler(Deno.env.get("BOT_TOKEN"), Deno.env.get("BOT_URL"))
+const _ID_ = 958984293
+
+const app = new Application();
+const router = new Router();
+router.get("/init", async (ctx) => {
+    ctx.response.body = await handler.setWebhook();
+});
+
+handler.on('message', async (message, on) => {
+    on('/start', async () => {
+        await handler.sendMessage(message.from.id, 'Hi')
+    })('', async () => {
+        const ans = await bot.getAnswer("Hi")
+        await handler.sendMessage(message.from.id, ans)
     })
-}
+})
 
-const server = new Server({handler});
-const listener = Deno.listen({port: 8080});
+app.use(async (ctx) => {
+    if (ctx.request.hasBody) {
+        const body = await ctx.request.body().value;
+        console.log(body);
+        handler.parse(body)
 
-console.log("server listening on http://localhost:8080");
+        ctx.response.body = "";
+    }
+});
 
-await server.serve(listener)
+app.use(oakCors()); // Enable CORS for All Routes
+app.use(router.routes());
+app.use(router.allowedMethods());
+
+await app.listen({port: 8000});
