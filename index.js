@@ -43,9 +43,8 @@ app.use(async (ctx) => {
         const body = await ctx.request.body().value;
         console.log(body);
         handler.parse(body)
-
-        ctx.response.body = "";
     }
+    ctx.response.body = "";
 });
 
 app.use(oakCors()); // Enable CORS for All Routes
