@@ -4,7 +4,7 @@ function int32() {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-class Handler {
+export default class Handler {
     #listeners = {}
     #BOT_TOKEN
     #BOT_URL

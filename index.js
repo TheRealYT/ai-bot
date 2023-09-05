@@ -1,5 +1,5 @@
-import {Server} from "https://deno.land/std@0.200.0/http/server.ts";
 import Bot from "./ai_api.js";
+import Handler from "./bot_api.js";
 
 const bot = Bot('tefixuca@clout.wiki', {
     bitoUserWsId: '526669',
