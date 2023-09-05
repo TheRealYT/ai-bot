@@ -9,7 +9,13 @@ function createNewSessionGUID() {
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 }
 
-export default function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthCode: '', newUser: '', userId: '' }, bitoaiToken = '', uIdForXClient = getRandomToken(), currentSessionID = createNewSessionGUID() } = { otpObj: {} }) {
+export default function Bot(email, {
+    bitoUserWsId = '',
+    otpObj = {sixDigitAuthCode: '', newUser: '', userId: ''},
+    bitoaiToken = '',
+    uIdForXClient = getRandomToken(),
+    currentSessionID = createNewSessionGUID()
+} = {otpObj: {}}) {
     const abortController = new AbortController();
     const abortSignal = abortController.signal;
     const relString = "<<B1t0De1im@t0r>>";
@@ -106,26 +112,26 @@ export default function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthC
         };
         return new Promise((resolve, reject) => {
 
-        fetch(environment.verifyOTP.replace('{email}', email).replace('{otp}', otpCode), requestOptions)
-            .then(response => response.text())
-            .then(result => {
-                let response;
-                if (result !== "") {
-                    response = JSON.parse(result);
-                    let companyDomain = email.split('@')[1];
-                    if (response.apierror) {
-                        reject("Invalid input, Try again");
+            fetch(environment.verifyOTP.replace('{email}', email).replace('{otp}', otpCode), requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    let response;
+                    if (result !== "") {
+                        response = JSON.parse(result);
+                        let companyDomain = email.split('@')[1];
+                        if (response.apierror) {
+                            reject("Invalid input, Try again");
+                        }
+                        showWSList(email, sixDigitAuthCode, response.newUser, response.userId, companyDomain).then(() => {
+                            resolve(true)
+                        }).catch(reason => reject(reason))
+                    } else {
+                        reject('Something went wrong. Reload in 5s');
                     }
-                    showWSList(email, sixDigitAuthCode, response.newUser, response.userId, companyDomain).then(() => {
-                        resolve(true)
-                    }).catch(reason => reject(reason))
-                } else {
-                    reject('Something went wrong. Reload in 5s');
-                }
-            })
-            .catch(error => {
-                reject(error)
-            });
+                })
+                .catch(error => {
+                    reject(error)
+                });
         })
     }
 
@@ -302,17 +308,24 @@ export default function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthC
     const context = []
 
     function getQuestionContext() {
+        shrink();
         return context
     }
 
     function clearContext() {
-        context.splice(0, context.length)
+        context.splice(1, context.length - 1)
+    }
+
+    function shrink() {
+        if (context.length > 10) context.splice(1, context.length - 9);
     }
 
     function addToContext(question, answer) {
-        if (context.length > 10) context.shift();
-        context.push({ question, answer })
+        context.push({question, answer})
+        shrink();
     }
+
+    addToContext("Now your name is EthioAIBot.", "Thank you for giving me a name! You can call me EthioAIBot if you prefer. How can I assist you today?")
 
     function getAnswer(chatMsg, streamCallback) {
         const myHeaders = new Headers();
@@ -393,7 +406,7 @@ export default function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthC
                     new ReadableStream({
                         start(controller) {
                             function push() {
-                                reader.read().then(({ done, value }) => {
+                                reader.read().then(({done, value}) => {
                                     if (done) {
                                         controller.close();
                                         ctxToPassNew.push(tempContext_);
@@ -432,16 +445,29 @@ export default function Bot(email, { bitoUserWsId = '', otpObj = { sixDigitAuthC
                                     push();
                                 });
                             }
+
                             push();
                         }
                     });
                 }).catch(error => {
-                    reject(error)
-                });
+                reject(error)
+            });
         })
     }
 
     return {
-        sendOTP, validateOTP, getAnswer, clearContext, addToContext, getQuestionContext, getUserData: () => ({ bitoUserWsId, otpObj: { sixDigitAuthCode: otpObj.sixDigitAuthCode, newUser: otpObj.newUser, userId: otpObj.userId }, bitoaiToken, uIdForXClient, currentSessionID })
+        sendOTP,
+        validateOTP,
+        getAnswer,
+        clearContext,
+        addToContext,
+        getQuestionContext,
+        getUserData: () => ({
+            bitoUserWsId,
+            otpObj: {sixDigitAuthCode: otpObj.sixDigitAuthCode, newUser: otpObj.newUser, userId: otpObj.userId},
+            bitoaiToken,
+            uIdForXClient,
+            currentSessionID
+        })
     }
 }

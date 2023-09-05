@@ -36,6 +36,7 @@ handler.on('message', async (message, on) => {
         if (message?.text.length > 0) {
             const ans = await bot.getAnswer(message.text)
             await handler.sendMessage(message.from.id, ans)
+            console.log(bot.getQuestionContext())
         }
     })
 })
