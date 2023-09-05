@@ -37,7 +37,9 @@ handler.on('message', async (message, on) => {
             await handler.sendChatAction(message.chat.id, "typing")
 
             const ans = await bot.getAnswer(message.text)
-            await handler.sendMessage(message.from.id, ans)
+            await handler.sendMessage(message.from.id, ans, {
+                reply_to_message_id: message.message_id
+            })
 
             console.log(bot.getQuestionContext())
         }
