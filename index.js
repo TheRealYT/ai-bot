@@ -1,3 +1,6 @@
+import {Application, Router} from "https://deno.land/x/oak@v11.1.0/mod.ts";
+import {oakCors} from "https://deno.land/x/cors@v1.2.2/mod.ts";
+
 import Bot from "./ai_api.js";
 import Handler from "./bot_api.js";
 
@@ -12,9 +15,6 @@ const bot = Bot('tefixuca@clout.wiki', {
     uIdForXClient: "4ade8d73-af1e-000f-b284-a4c8e638a490",
     currentSessionID: "fcc4c0fa-8e14-4132-90a1-ef2613e2315f"
 })
-
-import {Application, Router} from "https://deno.land/x/oak@v11.1.0/mod.ts";
-import {oakCors} from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
 const handler = new Handler(Deno.env.get("BOT_TOKEN"), Deno.env.get("BOT_URL"))
 const _ID_ = 958984293
