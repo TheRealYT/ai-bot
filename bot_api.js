@@ -23,7 +23,7 @@ export default class Handler {
     }
 
     async #req(endPoint, jsonData) {
-        await fetch(
+        const res = await fetch(
             `https://api.telegram.org/bot${this.#BOT_TOKEN}/${endPoint}`,
             {
                 method: "POST",
@@ -33,6 +33,7 @@ export default class Handler {
                 body: JSON.stringify(jsonData),
             },
         );
+        console.log(await res.text())
     }
 
     on(event, callback) {
