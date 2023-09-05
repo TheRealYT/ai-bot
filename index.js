@@ -33,8 +33,10 @@ handler.on('message', async (message, on) => {
     on('/start', async () => {
         await handler.sendMessage(message.from.id, 'Hi')
     })('', async () => {
-        const ans = await bot.getAnswer("Hi")
-        await handler.sendMessage(message.from.id, ans)
+        if (message?.text.length > 0) {
+            const ans = await bot.getAnswer(message.text)
+            await handler.sendMessage(message.from.id, ans)
+        }
     })
 })
 
