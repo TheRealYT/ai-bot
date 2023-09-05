@@ -52,6 +52,10 @@ export default class Handler {
         await this.#req('sendMessage', {chat_id, text, ...other})
     }
 
+    async sendChatAction(chat_id, action, other = {}) {
+        await this.#req('sendChatAction', {chat_id, action, ...other})
+    }
+
     async forwardMessage(chat_id, from_chat_id, message_id, other = {}) {
         await this.#req('forwardMessage', {chat_id, from_chat_id, message_id, ...other})
     }
