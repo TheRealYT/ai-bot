@@ -38,7 +38,7 @@ handler.on('message', async (message, on) => {
             // await Promise.all(
             //     [
             await handler.sendChatAction(message.chat.id, "typing")
-            handler.close()
+            // handler.close()
             await handler.sendMessage(message.from.id, ans)
             // ])
             console.log(bot.getQuestionContext())
@@ -52,12 +52,11 @@ app.use(router.allowedMethods());
 app.use(async (ctx) => {
     if (ctx.request.hasBody) {
         const body = await ctx.request.body().value;
+        ctx.response.body = "";
+
         console.log(body);
-        handler.parse(body, () => {
-            ctx.response.body = "";
-        })
+        handler.parse(body)
     }
-    ctx.response.body = "";
 });
 
 await app.listen({port: 80});
