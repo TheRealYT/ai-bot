@@ -37,7 +37,7 @@ handler.on('message', async (message, on) => {
             const ans = await bot.getAnswer(message.text)
             // await Promise.all(
             //     [
-            await handler.sendChatAction(message.from.id, "typing")
+            await handler.sendChatAction(message.chat.id, "typing")
             await handler.sendMessage(message.from.id, ans)
             // ])
             console.log(bot.getQuestionContext())
