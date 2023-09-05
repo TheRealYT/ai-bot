@@ -34,13 +34,11 @@ handler.on('message', async (message, on) => {
         await handler.sendMessage(message.from.id, 'Hi')
     })('', async () => {
         if (message?.text.length > 0) {
-            const ans = await bot.getAnswer(message.text)
-            // await Promise.all(
-            //     [
             await handler.sendChatAction(message.chat.id, "typing")
-            // handler.close()
+
+            const ans = await bot.getAnswer(message.text)
             await handler.sendMessage(message.from.id, ans)
-            // ])
+
             console.log(bot.getQuestionContext())
         }
     })
