@@ -25,6 +25,10 @@ router.get("/init", async (ctx) => {
     ctx.response.body = await handler.setWebhook();
 });
 
+router.get("/hello", async (ctx) => {
+    ctx.response.body = "World";
+});
+
 handler.on('message', async (message, on) => {
     on('/start', async () => {
         await handler.sendMessage(message.from.id, 'Hi')
