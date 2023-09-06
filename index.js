@@ -33,7 +33,7 @@ handler.on('message', async (message, on) => {
     on('/start', async () => {
         await handler.sendMessage(message.from.id, 'Hi')
     })('', async () => {
-        if (message?.text.length > 0) {
+        if ((message?.text ?? "").length > 0) {
             await handler.sendChatAction(message.chat.id, "typing")
 
             const ans = await bot.getAnswer(message.text)
